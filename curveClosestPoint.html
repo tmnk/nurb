@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NURBS</title>
+
+	<script src="js/verb.js"></script>
+	<script src="js/three.min.js"></script>
+	<script src="js/verbToThreeConversion.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.4/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <style>
+            input {
+                width: 20px;
+                font-size: 13px;
+                padding: 6px 0 4px 10px;
+                border: 1px solid #cecece;
+                background: #F6F6f6;
+                border-radius: 8px;
+            }
+            #hid {
+                /*visibility: hidden; */
+            }
+    </style>
+</head>
+<body>
+<div id="hid">
+    1) <input type="text" id="a1" value="10"> <input type="text" id="a2" value="-10"> <input type="text" id="a3" value="-5">
+    2) <input type="text" id="b1" value="50"> <input type="text" id="b2" value="10"> <input type="text" id="b3" value="15">
+    3) <input type="text" id="c1" value="20"> <input type="text" id="c2" value="20"> <input type="text" id="c3" value="15">
+    4) <input type="text" id="d1" value="10"> <input type="text" id="d2" value="20"> <input type="text" id="d3" value="25">
+</div>
+<input style=" width: 100px;" type="range" min="1" max="360" step="1" value="4" id="aprx">
+
+</body>
+
+<script id="script">
+        function setup() {
+            createCanvas(windowWidth - 10, windowHeight - 70);
+            background(255, 0, 0);
+        }
+        var p1 = [parseInt($('#a1').val()), parseInt($('#a2').val()), parseInt($('#a3').val())];
+        var p2 = [parseInt($('#b1').val()), parseInt($('#b2').val()), parseInt($('#b3').val())];
+        var p3 = [parseInt($('#c1').val()), parseInt($('#c2').val()), parseInt($('#c3').val())];
+        var p4 = [parseInt($('#d1').val()), parseInt($('#d2').val()), parseInt($('#d3').val())];
+        //var p1 = [10,-10,-5], p2 = [20,0,15], p3 = [20,20,15], p4 = [10,20,25];
+
+        var pts = [p1, p2, p3, p4], tmpPts = pts;
+        var interpCurve = verb.geom.NurbsCurve.byPoints( pts, 3 );
+        //var t = interpCurve.toThreeGeometry();
+        var nurb = interpCurve.toThreeGeometry(), arr = [], curr = 0;
+
+            //big[0] = [[0, 0, 20],[20,0, 20], [0,-20,-20]];
+
+        var pp = p1, step = parseInt($('#aprx').val()) , x, y, t = [], fl = 0, tmpStep = step;
+        var flagOfFirstDraw = 1;
+        function draw() {
+
+            var len = 2;
+            var pline = function(a, b) {
+                line(a[0] * len, a[1] * len, b[0] * len, b[1] * len);
+            }
+            translate(500, 280);
+            background(255);
+            step = parseInt($('#aprx').val());
+            if (step != tmpStep ) {
+                p1 = [parseInt($('#a1').val()), parseInt($('#a2').val()), parseInt($('#a3').val())];
+                p2 = [parseInt($('#b1').val()), parseInt($('#b2').val()), parseInt($('#b3').val())];
+                p3 = [parseInt($('#c1').val()), parseInt($('#c2').val()), parseInt($('#c3').val())];
+                p4 = [parseInt($('#d1').val()), parseInt($('#d2').val()), parseInt($('#d3').val())];
+                var curve = verb.geom.NurbsCurve.byPoints( [p1, p2, p3, p4], 3 );
+                var newnurb = curve.toThreeGeometry();
+                arr = [], curr = 0;
+                nurb = newnurb;
+                for (var j = 0; j < nurb.length - 1; j++) 
+                    pline(nurb[j] , nurb[j + 1]);
+                fl = 0;
+
+                tmpStep = step;
+            }
+
+            var rotate3DY = function(theta, arr){
+                    var sinT = Math.sin(theta);
+                    var cosT = Math.cos(theta),x,z;
+                    for (var n = 0; n < arr.length; n++){
+                        x = arr[n][0];
+                        z = arr[n][2];
+                        arr[n][0] = x * cosT - z * sinT;
+                        arr[n][2] = z * cosT + x * sinT;  
+                    }
+                };
+                var rotate3DX = function(theta, arr){
+                    var sinT = Math.sin(theta);
+                    var cosT = Math.cos(theta), y, z;
+                    for ( var n = 0; n < arr.length; n++){
+                        y = arr[n][1];
+                        z = arr[n][2];
+                        arr[n][1] = y * cosT - z * sinT;
+                        arr[n][2] = z * cosT + y * sinT;                    
+                    }
+                };
+            
+            if (mouseIsPressed){
+                for (var i = 0; i < t.length; i++) {
+                    rotate3DY(radians(mouseX - pmouseX), t[i]);
+                    rotate3DX(radians(mouseY - pmouseY), t[i]);
+                }
+            }
+
+            if (!fl) {
+                  t = [];
+                for (var i = 0; i < step; i++) {
+                    arr = [];
+                    for (var j = 0; j < nurb.length - 1; j++) {
+                        arr.push([nurb[j][0] *  Math.cos(2 * i * Math.PI / step) + nurb[j][2] *  Math.sin(2 * i * Math.PI / step), nurb[j][1], nurb[j][0] *  -1 * Math.sin(2 * i * Math.PI / step ) + nurb[j][2] *  Math.cos(2 * i * Math.PI / step)]);
+                    }
+                    t.push(arr);
+                    fl = 1;
+                }
+            }
+            for (var i = 0; i < t.length  ; i++) {
+                var tmp = t[i];
+                for (var j = 0; j < tmp.length - 1; j++) 
+                    pline(t[i][j] , t[i][j + 1]);
+            }
+        }
+</script>
+
+
+</html>

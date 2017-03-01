@@ -1,0 +1,214 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.4/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="l.js"></script>
+    <style>
+        canvas {
+          background-color: #000;  
+        };
+    </style>
+</head>
+<body>
+
+<input type="range" min="4" max="100" step="1" value="4" id="aprx">
+<input type="range" min="40" max="300" step="5" value="150" id="line">
+    <script>
+        var size = parseInt($('#aprx').val()), lineSize = parseInt($('#line').val()), tmpSize = size, tmpLineSize = lineSize, zp = 0, clr = parseInt($('#clr').val());
+        var dot0 = [-lineSize, -lineSize / 2, lineSize]; //A
+        var arr = [dot0];
+        var arr1 = [[-lineSize, -lineSize , -lineSize]];
+        var t = 0, sh = lineSize / size * 2;
+        for (var i = 1; i <= size; i++) {
+            var p = arr[i - 1];
+            var n = [0, 0, p[2]];
+            n[0] = dot0[0] * Math.cos(2 * i * Math.PI / size);
+            n[1] = dot0[1] * Math.sin(2 * i * Math.PI / size);
+            arr[i] = n;
+            sh = dot0[2] * 0.5 * Math.sin(2 * i * Math.PI / size) + dot0[1] * 0.5 * Math.cos(2 * i * Math.PI / size);
+            arr1[i] = [n[0], n[1], sh];
+        }
+        arr[0] = arr[size];
+        arr1[0] = [arr1[size][0], arr1[size][1],(arr1[size - 1][2] + arr1[1][2] ) / 2];
+        
+        arr[size] = arr1[size] = [];
+        var faces = [];
+        for (var i = 0; i < size; i++) {
+            faces[i] = [arr[i], arr[(i + 1) % size], arr1[i], arr1[(i + 1) % size]];
+        }
+        var Ptop = [0, 0,  lineSize], Pbot = [0, 0, (-lineSize + zp) / 2  - size * 10.01];
+
+        var xgo, ygo, shift = 1;
+        function setup() {
+            createCanvas(windowWidth - 10, windowHeight - 50, WEBGL);
+            xgo = -200;
+            ygo = -windowHeight / 4.5;
+            colorMode(HSB, height, height, height); 
+            background(255, 255, 255);
+        }
+        function draw() {
+            shift = (shift + 1) % 360;
+            translate(-windowWidth / 3 + xgo * Math.cos(Math.PI * 2 / 360 * shift),-50  - windowHeight / 3 + ygo * Math.sin(Math.PI * 2 / 360 * shift)/*ygo = xgo * Math.sin(Math.PI * 2 / 360) + ygo * Math.cos(Math.PI * 2 / 360)*/);
+            size = parseInt($('#aprx').val());
+            clr = parseInt($('#clr').val());
+            lineSize = parseInt($('#line').val());
+            if (size != tmpSize || lineSize != tmpLineSize) {
+
+                faces = [];
+                dot0 = [-lineSize, -lineSize / 2, lineSize]; //A
+                arr = [dot0];
+                arr1 = [[-lineSize, -lineSize / 2, -lineSize]];
+                t = 0, sh = lineSize / size * 2;
+        for (var i = 1; i <= size; i++) {
+            var p = arr[i - 1];
+            var n = [0, 0, p[2]];
+            n[0] = dot0[0] * Math.cos(2 * i * Math.PI / size);// - p[1] * Math.sin(2 * Math.PI / size); 
+            n[1] = dot0[1] * Math.sin(2 * i * Math.PI / size);// + p[1] * Math.cos(2 * Math.PI / size);
+            arr[i] = n;
+            sh = dot0[2] * 0.5 * Math.sin(2 * i * Math.PI / size) + dot0[1] * 0.5 * Math.cos(2 * i * Math.PI / size);
+            arr1[i] = [n[0], n[1], sh];
+        }
+        arr[0] = arr[size];
+        arr1[0] = [arr1[size][0], arr1[size][1],(arr1[size - 1][2] + arr1[1][2] ) / 2];
+        
+        arr[size] = arr1[size] = [];
+                for (var i = 0; i < size; i++) {
+                    faces[i] = [arr[i], arr[(i + 1) % size], arr1[i], arr1[(i + 1) % size]];
+                }
+                Ptop = [0, 0, lineSize/* + size * 0.005*/], Pbot = [0, 0, (-lineSize + zp) / 2  - size * 0.005];
+
+        for (var i = 0; i < arr1.length; i++) console.log(arr1[i][2]);
+            console.log(arr1[arr1.length - 1] + sh);
+                tmpSize = size;
+                tmpLineSize = lineSize;
+            }
+            translate(500 , 300 );
+            background(255, 255, 255);
+            var rotate3DZ = function(theta){
+                var sinT = Math.sin(theta);
+                var cosT = Math.cos(theta), x, y;
+                for (var n = 0; n < arr.length; n++){
+                    x = arr[n][0];
+                    y = arr[n][1];
+                    dots[n][0] = x * cosT - y * sinT;
+                    dots[n][1] = y * cosT + x * sinT;
+                    x = arr1[n][0];
+                    y = arr1[n][2];
+                    arr[n][0] = x * cosT - y * sinT;
+                    arr[n][2] = y * cosT + x * sinT;
+                }
+            };
+            var rotate3DY = function(theta){
+                var sinT = Math.sin(theta);
+                var cosT = Math.cos(theta),x,z;
+                for (var n = 0; n < arr.length; n++){
+                    x = arr[n][0];
+                    z = arr[n][2];
+                    arr[n][0] = x * cosT - z * sinT;
+                    arr[n][2] = z * cosT + x * sinT;                    
+                    x = arr1[n][0];
+                    z = arr1[n][2];
+                    arr1[n][0] = x * cosT - z * sinT;
+                    arr1[n][2] = z * cosT + x * sinT;
+                }
+                x = Ptop[0], z = Ptop[2];
+                Ptop[0] = x * cosT - z * sinT;
+                Ptop[2] = z * cosT + x * sinT;  
+                x = Pbot[0], z = Pbot[2];   
+                Pbot[0] = x * cosT - z * sinT;
+                Pbot[2] = z * cosT + x * sinT; 
+            };
+            var rotate3DX = function(theta){
+                var sinT = Math.sin(theta);
+                var cosT = Math.cos(theta), y, z;
+                for ( var n = 0; n < arr.length; n++){
+                    y = arr[n][1];
+                    z = arr[n][2];
+                    arr[n][1] = y * cosT - z * sinT;
+                    arr[n][2] = z * cosT + y * sinT;                    
+                    y = arr1[n][1];
+                    z = arr1[n][2];
+                    arr1[n][1] = y * cosT - z * sinT;
+                    arr1[n][2] = z * cosT + y * sinT;
+                }
+                y = Ptop[1], z = Ptop[2];
+                Ptop[1] = y * cosT - z * sinT;
+                Ptop[2] = z * cosT + y * sinT;  
+                y = Pbot[1], z = Pbot[2];   
+                Pbot[1] = y * cosT - z * sinT;
+                Pbot[2] = z * cosT + y * sinT;
+            };
+            //var funX = function(P1, P2)
+            background(255,255,255);
+            if (mouseIsPressed){
+            //rotate3DZ(30);
+                rotate3DY(radians(mouseX - pmouseX));
+                rotate3DX(radians(mouseY - pmouseY));
+            };
+
+            var mod = function(a) {
+                if (a < 0) return -a;
+                return a;
+            }
+            var plus = function(a, b) {
+                var r = [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+                return r;
+            }
+            var createVect = function(a, b) {
+                return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+            }
+            var prQuad = function(a, b, c, d, len) {
+                fill(3000, 0, len * 700)
+                quad(a[0], a[1], b[0], b[1], c[0], c[1], d[0], d[1]);
+            }
+            var prLine = function(a, b) {
+                line(a[0], a[1], b[0], b[1]);
+            }
+            var lengthV = function(a, b) {
+                var v = [(a[1] * b[2] - a[2] * b[1]), (a[0] * b[2] - a[2] * b[0]), (a[0] * b[1] - a[1] * b[0])];
+                return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+            }
+            var vect1;
+            var vect2;
+            for(var p = 0; p < faces.length; p++){
+                var P1 = faces[p][0];
+                var P2 = faces[p][1];
+                var P3 = faces[p][2];
+                var P4 = faces[p][3];
+                vect1 = [(P2[0] - P1[0]),(P2[1] - P1[1]),(P2[2] - P1[2])];
+                vect2 = [(P3[0] - P1[0]),(P3[1] - P1[1]),(P3[2] - P1[2])];
+                if (vect1[0] * vect2[1] - vect1[1] * vect2[0] > 0) {
+                    len = (vect1[0] * vect2[1] - vect1[1] * vect2[0]) / lengthV(vect1, vect2);
+                    prQuad(P1, P2, P4, P3, len);
+                }
+                vect1 = [(P2[0] - Ptop[0]),(P2[1] - Ptop[1]),(P2[2] - Ptop[2])];
+                vect2 = [(P1[0] - Ptop[0]),(P1[1] - Ptop[1]),(P1[2] - Ptop[2])];
+                if (vect1[0] * vect2[1] - vect1[1] * vect2[0] > 0) {
+                    len = (vect1[0] * vect2[1] - vect1[1] * vect2[0]) / lengthV(vect1, vect2);
+                    prQuad(Ptop,Ptop,P1,P2, len);
+                }
+            }
+            vect1 = createVect(arr1[1], arr1[2]);
+            vect2 = createVect(arr1[1], arr1[arr.length - 1]);
+            var rr = 0;
+
+                for (var b = 1, l = arr.length - 2; l > b; b++, l--) {
+                    vect1 = createVect(arr1[b], arr1[l]);
+                    vect2 = createVect(arr1[b], arr1[b + 1]);
+                    if (vect1[0] * vect2[1] - vect1[1] * vect2[0] < 0) { 
+                        len = -(vect1[0] * vect2[1] - vect1[1] * vect2[0]) / lengthV(vect1, vect2);
+                        prQuad(arr1[b],arr1[l], arr1[l - 1], arr1[b + 1], len);
+                        if (b == 1) prQuad(arr1[b],arr1[l], arr1[0], arr1[0], len);
+                    }
+
+                }
+                
+            fill(255, 0, 0);
+        }
+
+</script>
+</body>
+</html>

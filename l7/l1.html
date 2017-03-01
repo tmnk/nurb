@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" type="text/css" href="./jsxgraph.css">
+  <script type="text/javascript" src="./jsxgraphcore.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <title>Полиндром N6</title>
+</head>
+
+<body>
+<input type="range" min="1" max="10" step="0.2" value="5" id="line">
+<button id="but">Draw</button>
+  <div id='jxgbox' class='jxgbox' style='width:$(window).width() ; height:600px;'></div>
+  <script type="text/javascript">
+  var i = 0, arr = [] ;
+  for (var j = 0, k = 0; j <= 2; j = j + 0.5, k++) {
+    arr[k] = Math.PI * j;
+  }
+  $('button').on('click',function(){
+      var a = parseInt($('#line').val());
+        var board = JXG.JSXGraph.initBoard('jxgbox', {
+          keepaspectratio: false,
+          boundingbox: [-10, 20, 10, -1],
+          axis: true
+        });
+
+        var func = function(x) {
+          return a * (1 - Math.cos(x));
+        }
+
+        var graph = board.create('functiongraph', [func, -10, 10], {
+          strokeWidth: 3
+        });
+      //}
+      
+});
+</script>
+</body>
+</html>

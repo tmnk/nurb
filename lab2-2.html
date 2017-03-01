@@ -1,0 +1,230 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.4/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="l.js"></script>
+    <style>
+        canvas {
+          background-color: #000;  
+        };
+    </style>
+</head>
+<body>
+
+<input type="range" min="6" max="25" step="1" value="2" id="aprx">
+    <script>
+        var Size = 0, carc = 0, lineSize = 100, tmpSize = lineSize;
+        
+        function setup() {
+            createCanvas(windowWidth - 10, windowHeight - 50, WEBGL);
+            //background(100);
+        }
+        var dot0 = [-lineSize, -lineSize, lineSize]; //A
+        var dot1 = [lineSize, -lineSize, lineSize]; //B
+        var dot2 = [lineSize, lineSize, lineSize];   //C
+        var dot3 = [-lineSize, lineSize, lineSize];  //D
+        var dot4 = [0, 0, -lineSize];      //O
+        var dots = [dot0, dot1, dot2, dot3, dot4];
+
+        var line0 = [dot0, dot1];
+        var line1 = [dot0, dot3];
+        var line2 = [dot0, dot4];
+        var line3 = [dot1, dot2];
+        var line4 = [dot1, dot4];
+        var line5 = [dot3, dot4];
+        var line6 = [dot2, dot4];
+        var line7 = [dot2, dot3];
+        var lines = [line0, line1, line2, line3, line4, line5, line6, line7];
+
+        var face4 = [dot0, dot1, dot2, dot3];
+        var face0 = [dot4, dot3, dot0];
+        var face1 = [dot4, dot0, dot1];
+        var face2 = [dot4, dot1, dot2];
+        var face3 = [dot4, dot2, dot3];
+        var faces = [face0, face1, face2, face3, face4];
+
+        function draw() {
+            background(255);
+            noStroke();
+            noFill();
+            //stroke(255);
+            // push();
+            // translate(0, 0);
+            // fill(100);
+            // sphere(10);
+            // pop();
+
+    background(0);
+
+    // Blue directional light from the left
+    directionalLight(255, 255, 255, -1, 0, 0);
+
+            
+            Size = parseInt($('#aprx').val()); 
+            lineSize = parseInt($('#sizes').val());
+            background(255, 255, 255);
+            var rotate3DZ = function(theta){
+                var sinT = Math.sin(theta);
+                var cosT = Math.cos(theta);
+                for (var n = 0; n < dots.length; n++){
+                var x = dots[n][0];
+                var y = dots[n][1];
+                dots[n][0] = x * cosT - y * sinT;
+                dots[n][1] = y * cosT + x * sinT;
+                }
+            };
+            var rotate3DY = function(theta){
+                var sinT = Math.sin(theta);
+                var cosT = Math.cos(theta);
+                for (var n = 0; n < dots.length; n++){
+                var x = dots[n][0];
+                var z = dots[n][2];
+                dots[n][0] = x * cosT - z * sinT;
+                dots[n][2] = z * cosT + x * sinT;
+                }
+            };
+            var rotate3DX = function(theta){
+                var sinT = Math.sin(theta);
+                var cosT = Math.cos(theta);
+                for ( var n = 0; n < dots.length; n++){
+                var y = dots[n][1];
+                var z = dots[n][2];
+                dots[n][1] = y * cosT - z * sinT;
+                dots[n][2] = z * cosT + y * sinT;
+                }
+            };;
+
+            //var funX = function(P1, P2)
+            background(255,255,255);
+            var X, Y;
+            if (mouseIsPressed){
+            //rotate3DZ(30);
+                rotate3DY(Y = radians(mouseX - pmouseX));
+                rotate3DX(X = radians(mouseY - pmouseY));
+            }
+
+            var mod = function(a) {
+                if (a < 0) return -a;
+                return a;
+            }
+            var plus = function(a, b) {
+                var r = [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+                return r;
+            }
+            var diff = function(a, b) {
+                var r = [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+                return r;
+            }
+            var createVect = function(a, b) {
+               //return [(-a[0] + b[0]),(-a[1] + b[1]),(-a[2] + b[2])];
+               return [(a[0] - b[0]),(a[1] - b[1]),(a[2] - b[2])];
+            
+            }
+            var createShift = function(a, b) {
+                return [-a[0] / b, -a[1] / b, -a[2] / b];
+            }
+            var lengthV = function(a, b) {
+                var v = [(a[1] * b[2] - a[2] * b[1]), (a[0] * b[2] - a[2] * b[0]), (a[0] * b[1] - a[1] * b[0])];
+                return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+            }
+
+            var cnt = 0;
+            
+            for(var p = 0; p < faces.length; p++){
+                var P1 = faces[p][0];
+                var P2 = faces[p][1];
+                var P3 = faces[p][2];
+                var vect1 = [(P2[0] - P1[0]),(P2[1] - P1[1]),(P2[2] - P1[2])];
+                var vect2 = [(P3[0] - P1[0]),(P3[1] - P1[1]),(P3[2] - P1[2])];
+                var vect3 = [(P3[0] - P2[0]),(P3[1] - P2[1]),(P3[2] - P2[2])];
+                var len = 0;
+                if (faces[p] == face4) {
+                    if (cnt >= 3 && !carc) continue;
+                    if (cnt == 2 && !carc) {                
+                        vect1 = [(-P2[0] + P1[0]),(-P2[1] + P1[1]),(-P2[2] + P1[2])];
+                        vect2 = [(-P3[0] + P1[0]),(-P3[1] + P1[1]),(-P3[2] + P1[2])];
+                        if (vect1[0] * vect2[1] - vect1[1] * vect2[0] > 0 ) continue;
+                    }
+                    var P4 = faces[p][3];
+                    // line(P1[0], P1[1], P2[0], P2[1]);
+                    // line(P2[0], P2[1], P3[0], P3[1]);
+                    // line(P3[0], P3[1], P4[0], P4[1]); 
+                    // line(P1[0], P1[1], P4[0], P4[1]);
+                    //fill(140, 140, 140);
+                    //quad(P1[0], P1[1], P2[0], P2[1], P3[0], P3[1], P4[0], P4[1]);
+                    vect2 = [(P3[0] - P4[0]),(P3[1] - P4[1]),(P3[2] - P4[2])];
+                    vect1 = [(-P2[0] + P1[0]),(-P2[1] + P1[1]),(-P2[2] + P1[2])];
+                    var vect4 = [(P4[0] - P1[0]),(P4[1] - P1[1]),(P4[2] - P1[2])];
+                    var v1 = [vect1[0] / Size, vect1[1] / Size, vect1[2] / Size], v2 = [vect2[0] / Size, vect2[1] / Size, vect2[2] / Size], v3 = [vect3[0] / Size, vect3[1] / Size, vect3[2] / Size], v4 = [vect4[0] / Size, vect4[1] / Size, vect4[2] / Size];
+                    var f1 = P1, f2 = P4, f3 = P1, f4 = P2;
+                    v1 = [-v1[0], -v1[1], -v1[2]];
+
+                    len = (vect1[0] * vect2[1] - vect1[1] * vect2[0]) / lengthV(createVect(f1, f2), createVect(f3, f4)) * 20;
+                    for (var s = 0; s <= Size; s++) {
+
+                        var parr1 = createVect(f1, f2);
+                        var p1 = createShift(parr1, Size);
+                        var t1 = f1; //diff(f1, p1);
+                        for (var ss = 0; ss <= Size ;ss++) {
+                            stroke(255);
+                            push();
+                            translate(t1[0], t1[1]);
+                            fill(90 + len);
+                            sphere(20);
+                            pop();
+                            t1 = plus(t1, p1);
+                        }
+
+                        f1 = plus(f1, v1);
+                        f2 = plus(f2, v2);
+                       // line(f1[0], f1[1], f2[0], f2[1]);
+                        f3 = plus(f3, v3);
+                        f4 = plus(f4, v4);
+                        //line(f3[0], f3[1], f4[0], f4[1]);
+                    }
+
+                }
+                else if (vect1[0] * vect2[1] - vect1[1] * vect2[0] > 0 || carc) {
+                    // line(P1[0], P1[1], P2[0], P2[1]);
+                    // line(P1[0], P1[1], P3[0], P3[1]);
+                    // line(P3[0], P3[1], P2[0], P2[1]);
+
+                    //quad(P1[0], P1[1], P1[0], P1[1], P2[0], P2[1], P3[0], P3[1]);
+                    var len = (vect1[0] * vect2[1] - vect1[1] * vect2[0]) / lengthV(vect1, vect2) * 30;
+                    stroke(255);
+                    push();
+                    translate(P1[0], P1[1]);
+                    fill(80 + len);
+                    sphere(20);
+                    pop();
+                    var v1 = createShift(vect1, Size), v2 = createShift(vect2, Size);
+                    var f1 = P2, f2 = P3, f3 = P2;
+                    for (var s = 0; s < Size; s++) {
+                        var parr1 = createVect(f1, f2);
+                        var p1 = createShift(parr1, Size);
+                        var t1 = f1;
+                        for (var ss = 0; ss <= Size;ss++) {
+                            stroke(255);
+                            push();
+                            translate(t1[0], t1[1]);
+                            fill(80 + len);
+                            sphere(20);
+                            pop();
+                            t1 = plus(t1, p1);
+                        }
+
+                        f1 = plus(f1, v1);
+                        f2 = plus(f2, v2);
+                    }
+
+                    cnt++;
+                }
+            }
+            fill(255, 0, 0);
+        }
+</script>
+</body>
+</html>

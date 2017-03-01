@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+      <link rel="stylesheet" type="text/css" href="./jsxgraph.css">
+      <script type="text/javascript" src="./jsxgraphcore.js"></script>
+  <title>Полиндром N6</title>
+
+  
+    
+
+
+
+
+<script type="text/javascript">
+    window.onload=function(){
+    var board = JXG.JSXGraph.initBoard('jxgbox', {
+      keepaspectratio: true,
+      boundingbox: [-5, 5, 5, -5],
+      axis: true
+    });
+
+    var p = [];
+    p[0] = board.create('point', [-2, 3], {
+      size: 4
+    });
+    p[1] = board.create('point', [-1.6, 1.7], {
+      size: 4
+    });
+    p[2] = board.create('point', [-1, 0.5], {
+      size: 4
+    });
+    p[3] = board.create('point', [0, -1], {
+      size: 4
+    });
+    p[4] = board.create('point', [1, 2], {
+      size: 4
+    });
+    p[5] = board.create('point', [3, -1], {
+      size: 4
+    });
+    var drawFunc = function(x) {
+        var lagrange_pol = 0;
+        var basics_pol;
+
+        for (var i = 0; i < p.length; i++)
+        {
+          basics_pol = 1;
+          for (var j = 0; j < p.length; j++)
+          {
+            if (j == i) continue;
+            basics_pol *= (x - p[j].X()) / (p[i].X() - p[j].X());    
+          }
+          lagrange_pol += basics_pol * p[i].Y();
+        }
+        return lagrange_pol;
+    };
+    var f = drawFunc;
+    var graph = board.create('functiongraph', [f, -10, 10], {
+      strokeWidth: 3
+    });
+
+}
+
+</script>
+
+  
+</head>
+
+<body>
+  <div id='jxgbox' class='jxgbox' style='width:1000px; height:700px;'>
+  </body>
+  </html>
